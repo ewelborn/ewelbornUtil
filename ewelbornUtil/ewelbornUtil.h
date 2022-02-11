@@ -3,6 +3,7 @@
 	for your C project - hopefully!
 
 	Version 0.1.0
+	https://github.com/ewelborn/ewelbornUtil/
 
 	Naming rules:
 		All public functions, structs, and types, must be prefixed
@@ -25,6 +26,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdarg.h>
 
 // *** DATASTRUCTURES
 
@@ -53,8 +55,9 @@ bool ewelborn_dynamicArray_push(ewelborn_dynamicArray* dynamicArray, void* eleme
 // if you want to keep your elements, then copy them to a safe place!
 void ewelborn_dynamicArray_free(ewelborn_dynamicArray* dynamicArray);
 
-// TODO: Add a function to traverse a dynamicArray (equivalant of
-// ewelborn_linkedList_traverse)
+// This function will iterate over every element in the given dynamic array
+// and will call the given function on the element.
+void ewelborn_dynamicArray_traverse(ewelborn_dynamicArray* dynamicArray, void(*f)(void*));
 
 struct ewelborn_linkedList {
 	void* element;
@@ -109,6 +112,10 @@ struct ewelborn_string {
 // Returns true if push is successful, false otherwise.
 bool ewelborn_string_pushChar(ewelborn_string* eString, char c);
 
+// Returns the nth character in the estring, or \0 if n is greater than
+// or equal to the estring's length, or less than 0.
+char ewelborn_string_getChar(ewelborn_string* eString, int n);
+
 // Attempts to create an empty estring, i.e. a string that only contains a
 // null terminator character. Returns the estring if successful, returns
 // null otherwise.
@@ -118,6 +125,10 @@ ewelborn_string* ewelborn_string_initializeEmpty();
 // a given estring. Returns true if successful, false otherwise. This
 // function is *not* guaranteed to keep the estring unmodified if unsuccessful.
 bool ewelborn_string_appendCString(ewelborn_string* estring, char* cstring);
+
+// This function will attempt to append the appendString estring to the end of
+// the given estring. Returns true if successful, false otherwise.
+bool ewelborn_string_append(ewelborn_string* estring, ewelborn_string* appendString);
 
 // Attempts to create an estring with a given cstring value. If the user
 // wants to initialize an estring with another estring, they should look
@@ -204,5 +215,41 @@ void ewelborn_string_slice(ewelborn_string* estring, int start, int end);
 //	ewelborn_string_split(estring1, '.') will return the dynamic array:
 //	{"Hi", " hello", " how are you?"}
 ewelborn_dynamicArray* ewelborn_string_split(ewelborn_string* estring, char c);
+
+// This function will delete the nth character in the estring. If n is
+// greater than or equal to the estring's length, or n is less than 0,
+// then nothing will happen.
+void ewelborn_string_deleteChar(ewelborn_string* estring, int n);
+
+// If the nth character in the estring is equal to c, then the nth character
+// will be deleted, and the string will be moved and resized to fill the gap
+// if necessary. If the nth character is *not* equal to c, then nothing happens.
+// The function returns true if the nth character is consumed, false otherwise.
+// The function returns false if n is greater than or equal to the estring's length,
+// or less than 0.
+bool ewelborn_string_consumeChar(ewelborn_string* eString, char c, int n);
+
+// This function is an implementation of sprintf for estrings. Given an estring
+// filled with printf format modifiers and a variable list of arguments, this
+// function will generate the result that printf would give for the same
+// arguments, but will store it back into the estring instead. Example:
+//	ewelborn_string_snprintf(estring1{"Name: %s, Age: %d"},"Ethan",21)
+// estring1 will now be "Name: Ethan, Age: 21". This function returns true
+// if successful, false otherwise.
+bool ewelborn_string_sprintf(ewelborn_string* estring, ...);
+
+// *** FILE MANIPULATION
+
+// This function will attempt to open the file at the given file path and
+// read it. If successful, the function will return a dynamic array of
+// estring pointers that are the individual lines in the file. Otherwise,
+// the function will return null.
+ewelborn_dynamicArray* ewelborn_readLinesFromFile(ewelborn_string* filePath);
+
+// This function will attempt to open the file at the given file path and
+// write the content string to it. If the file has not been created, then
+// this function will create it. This function returns true if the write
+// is successful, false otherwise.
+bool ewelborn_writeStringToFile(ewelborn_string* filePath, ewelborn_string* content);
 
 #endif // End of header guard clause
