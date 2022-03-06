@@ -29,9 +29,9 @@ bool ewelborn_dynamicArray_push(ewelborn_dynamicArray* dynamicArray, void* eleme
 
 void ewelborn_dynamicArray_free(ewelborn_dynamicArray* dynamicArray)
 {
-	for (int i = 0; i < dynamicArray->elements; i++) {
+	/*for (int i = 0; i < dynamicArray->elements; i++) {
 		free(dynamicArray->array[i]);
-	}
+	}*/
 	free(dynamicArray->array);
 	free(dynamicArray);
 }
@@ -113,6 +113,241 @@ ewelborn_linkedList* ewelborn_linkedList_reverse(ewelborn_linkedList* list)
 			return list;
 		}
 	}
+}
+
+ewelborn_priorityQueue* ewelborn_priorityQueue_initialize(bool min)
+{
+	ewelborn_priorityQueue* queue;
+	ewelborn_dynamicArray* heap;
+	queue = malloc(sizeof(ewelborn_priorityQueue));
+	if (queue == NULL) { return NULL; }
+
+	queue->min = min;
+
+	heap = ewelborn_dynamicArray_initialize();
+	if (heap == NULL) {
+		free(queue);
+		return NULL;
+	}
+
+	queue->heap = heap;
+
+	return queue;
+}
+
+// Private struct for coupling an element with a priority value
+struct priorityQueue_node {
+	void* element;
+	int priority;
+} typedef priorityQueue_node;
+
+void priorityQueue_heapify(ewelborn_priorityQueue* queue, int index)
+{
+	// largestIndex is the most significant element between the
+	// given element at index and its (optional) left and right children.
+	// For max priority queues, largestIndex is the highest priority. For
+	// min priority queues, largestIndex is the lowest priority.
+	int largestIndex = index;
+	int leftIndex = (2 * index) + 1;
+	int rightIndex = (2 * index) + 2;
+
+	priorityQueue_node* indexNode = (priorityQueue_node*)queue->heap->array[index];
+	priorityQueue_node* largestIndexNode = indexNode;
+	priorityQueue_node* rightNode = rightIndex < queue->heap->elements ? (priorityQueue_node*)queue->heap->array[rightIndex] : NULL;
+
+	if (leftIndex < queue->heap->elements) {
+		priorityQueue_node* leftNode = (priorityQueue_node*)queue->heap->array[leftIndex];
+		if (queue->min == true && indexNode->priority > leftNode->priority) {
+			// Min priority
+			largestIndex = leftIndex;
+			largestIndexNode = leftNode;
+		}
+		else if (queue->min == false && indexNode->priority < leftNode->priority) {
+			// Max priority
+			largestIndex = leftIndex;
+			largestIndexNode = leftNode;
+		}
+	}
+
+	if (rightIndex < queue->heap->elements) {
+		priorityQueue_node* rightNode = (priorityQueue_node*)queue->heap->array[rightIndex];
+		if (queue->min == true && largestIndexNode->priority > rightNode->priority) {
+			// Min priority
+			largestIndex = rightIndex;
+			largestIndexNode = rightNode;
+		}
+		else if (queue->min == false && largestIndexNode->priority < rightNode->priority) {
+			// Max priority
+			largestIndex = rightIndex;
+			largestIndexNode = rightNode;
+		}
+	}
+
+	if (largestIndex != index) {
+		// Swap
+		//printf("Swapping (%d,%d) with (%d,%d)\n", index, indexNode->priority, largestIndex, largestIndexNode->priority);
+
+		void* nElement = indexNode->element;
+		int nPriority = indexNode->priority;
+
+		indexNode->element = largestIndexNode->element;
+		indexNode->priority = largestIndexNode->priority;
+
+		largestIndexNode->element = nElement;
+		largestIndexNode->priority = nPriority;
+
+		priorityQueue_heapify(queue, largestIndex);
+	}
+}
+
+bool ewelborn_priorityQueue_insert(ewelborn_priorityQueue* queue, void* element, int priority)
+{
+	priorityQueue_node* node = malloc(sizeof(priorityQueue_node));
+	if (node == NULL) { return false; }
+
+	node->element = element;
+	node->priority = priority;
+
+	// Add the element to the bottom of the heap, then heapify
+	ewelborn_dynamicArray_push(queue->heap, node);
+
+	// Heapify starting from the new node and going up parent by parent
+	// to the root
+	for (int i = queue->heap->elements - 1; true; i /= 2) {
+		priorityQueue_heapify(queue, i);
+		if (i == 0) { break; }
+	}
+
+	return true;
+}
+
+int ewelborn_priorityQueue_getLength(ewelborn_priorityQueue* queue)
+{
+	return queue->heap->elements;
+}
+
+void* ewelborn_priorityQueue_peek(ewelborn_priorityQueue* queue)
+{
+	if (queue->heap->elements == 0) {
+		return NULL;
+	}
+	return ((priorityQueue_node*)queue->heap->array[0])->element;
+}
+
+void* ewelborn_priorityQueue_pop(ewelborn_priorityQueue* queue)
+{
+	if (queue->heap->elements <= 0) { return NULL; }
+
+	priorityQueue_node* returnNode;
+
+	if (queue->heap->elements > 1) {
+		// Swap the head of the queue with the last element
+		int lastElement = queue->heap->elements - 1;
+
+		void* nElement = ((priorityQueue_node*)queue->heap->array[0])->element;
+		int nPriority = ((priorityQueue_node*)queue->heap->array[0])->priority;
+
+		((priorityQueue_node*)queue->heap->array[0])->element = ((priorityQueue_node*)queue->heap->array[lastElement])->element;
+		((priorityQueue_node*)queue->heap->array[0])->priority = ((priorityQueue_node*)queue->heap->array[lastElement])->priority;
+
+		((priorityQueue_node*)queue->heap->array[lastElement])->element = nElement;
+		((priorityQueue_node*)queue->heap->array[lastElement])->priority = nPriority;
+
+		returnNode = ((priorityQueue_node*)queue->heap->array[lastElement]);
+	}
+	else {
+		returnNode = ((priorityQueue_node*)queue->heap->array[0]);
+	}
+
+	queue->heap->elements -= 1;
+
+	// TODO: Fix?
+	for (int i = queue->heap->elements - 1; i >= 0; i--) {
+		priorityQueue_heapify(queue, i);
+	}
+
+	void* returnElement = returnNode->element;
+	free(returnNode);
+
+	return returnElement;
+}
+
+void ewelborn_priorityQueue_free(ewelborn_priorityQueue* queue)
+{
+	ewelborn_dynamicArray_free(queue->heap);
+	free(queue);
+}
+
+bool ewelborn_priorityQueue_updatePriority(ewelborn_priorityQueue* queue, void* element, int newPriority)
+{
+	for (int i = 0; i < queue->heap->elements; i++) {
+		priorityQueue_node* node = ((priorityQueue_node*)queue->heap->array[i]);
+		if (node->element == element) {
+			node->priority = newPriority;
+
+			// Heapify from bottom to top to ensure that the tree is still correct.
+			// Max (or min) value should float to the top.
+			for (int i = queue->heap->elements - 1; i >= 0; i--) {
+				priorityQueue_heapify(queue, i);
+			}
+
+			return true;
+		}
+	}
+	return false;
+}
+
+ewelborn_queue* ewelborn_queue_initialize(int maxLength, bool overwrite)
+{
+	ewelborn_queue* queue = malloc(sizeof(ewelborn_queue));
+	if (queue == NULL) { return NULL; }
+
+	queue->array = malloc(sizeof(void*) * maxLength);
+	if (queue->array == NULL) {
+		free(queue);
+		return NULL;
+	}
+
+	queue->allocatedLength = maxLength;
+	queue->length = 0;
+	queue->overwrite = overwrite;
+	queue->readIndex = 0;
+	queue->writeIndex = 0;
+
+	return queue;
+}
+
+// Returns i+1 in an n-length circular buffer. In most cases, this is
+// just i+1, but if i is n-1, then this will return 0, i.e. it will
+// wrap around.
+int nextCircularIndex(int i, int n) {
+	return (i + 1) % n;
+}
+
+bool ewelborn_queue_push(ewelborn_queue* queue, void* element)
+{
+	if (queue->length == queue->allocatedLength && queue->overwrite == false) {
+		return false;
+	}
+	queue->array[queue->writeIndex] = element;
+	queue->writeIndex = nextCircularIndex(queue->writeIndex, queue->allocatedLength);
+	queue->length++;
+	return true;
+}
+
+void* ewelborn_queue_pop(ewelborn_queue* queue)
+{
+	if (queue->length == 0) { return NULL; }
+	void* element = queue->array[queue->readIndex];
+	queue->readIndex = nextCircularIndex(queue->readIndex, queue->allocatedLength);
+	queue->length--;
+	return element;
+}
+
+void ewelborn_queue_free(ewelborn_queue* queue)
+{
+	free(queue->array);
+	free(queue);
 }
 
 bool ewelborn_string_pushChar(ewelborn_string* eString, char c)
