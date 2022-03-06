@@ -36,6 +36,13 @@ void ewelborn_dynamicArray_free(ewelborn_dynamicArray* dynamicArray)
 	free(dynamicArray);
 }
 
+void ewelborn_dynamicArray_traverse(ewelborn_dynamicArray* dynamicArray, void(*f)(void*))
+{
+	for (int i = 0; i < dynamicArray->elements; i++) {
+		f(dynamicArray->array[i]);
+	}
+}
+
 ewelborn_linkedList* ewelborn_linkedList_initializeEmpty()
 {
 	ewelborn_linkedList* list = malloc(sizeof(ewelborn_linkedList));
@@ -123,6 +130,16 @@ bool ewelborn_string_pushChar(ewelborn_string* eString, char c)
 	return true;
 }
 
+char ewelborn_string_getChar(ewelborn_string* eString, int n)
+{
+	if (n < 0 || n >= eString->length) {
+		return '\0';
+	}
+	else {
+		return eString->cstring[n];
+	}
+}
+
 ewelborn_string* ewelborn_string_initializeEmpty()
 {
 	ewelborn_string* eString = malloc(sizeof(ewelborn_string));
@@ -148,6 +165,11 @@ bool ewelborn_string_appendCString(ewelborn_string* estring, char* cstring)
 	}
 
 	return true;
+}
+
+bool ewelborn_string_append(ewelborn_string* estring, ewelborn_string* appendString)
+{
+	return ewelborn_string_appendCString(estring, appendString->cstring);
 }
 
 ewelborn_string* ewelborn_string_initializeWithCString(char* cstring)
@@ -290,4 +312,95 @@ ewelborn_dynamicArray* ewelborn_string_split(ewelborn_string* estring, char c)
 	//printf("final slice: %s\n", ewelborn_string_getCString(finalSlice));
 
 	return results;
+}
+
+void ewelborn_string_deleteChar(ewelborn_string* estring, int n)
+{
+	if (n < 0 || n >= estring->length) {
+		return;
+	}
+
+	// Anything to the left of the nth position can be left alone,
+	// but anything to the right needs to be shifted 1 position to the left
+	for (int i = n; i < estring->length - 1; i++) {
+		estring->cstring[i] = estring->cstring[i + 1];
+	}
+}
+
+bool ewelborn_string_consumeChar(ewelborn_string* eString, char c, int n)
+{
+	if (n < 0 || n >= eString->length) {
+		return false;
+	}
+
+	if (eString->cstring[n] == c) {
+		ewelborn_string_deleteChar(eString, n);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool ewelborn_string_sprintf(ewelborn_string* estring, ...)
+{
+	va_list args;
+	va_start(args, estring);
+
+	// Thank you! https://stackoverflow.com/questions/3919995/determining-sprintf-buffer-size-whats-the-standard
+	int len = vsnprintf(NULL, 0, estring->cstring, args);
+	char* buffer = malloc(len + 1);
+	if (buffer == NULL) { return false; }
+	if (vsprintf_s(buffer, len + 1, estring->cstring, args) < 0) {
+		goto CLEAN_UP_AND_CRASH;
+	}
+
+	// Free the original cstring and replace it with the new one
+	free(estring->cstring);
+	estring->cstring = buffer;
+	estring->length = len;
+	estring->maxLength = len + 1;
+	return true;
+
+CLEAN_UP_AND_CRASH:
+	free(buffer);
+	return false;
+}
+
+ewelborn_dynamicArray* ewelborn_readLinesFromFile(ewelborn_string* filePath)
+{
+	FILE* inputFile;
+	errno_t err = fopen_s(&inputFile, filePath->cstring, "r");
+	if (err != 0 || inputFile == NULL) {
+		return NULL;
+	}
+
+	// Set up the buffer for holding all of the lines read
+	ewelborn_string* inputString = ewelborn_string_initializeEmpty();
+	if (inputString == NULL) { return NULL; }
+
+	// Read all of the characters from the file into an estring
+	char c;
+	while ((c = fgetc(inputFile)) != EOF) {
+		ewelborn_string_pushChar(inputString, c);
+	}
+
+	// Split the characters on newlines (\n) so we get each line
+	// as its own string.
+	return ewelborn_string_split(inputString, '\n');
+}
+
+bool ewelborn_writeStringToFile(ewelborn_string* filePath, ewelborn_string* content)
+{
+	FILE* outputFile;
+	errno_t err = fopen_s(&outputFile, filePath->cstring, "w");
+	if (err != 0 || outputFile == NULL) {
+		return false;
+	}
+
+	if (fputs(content->cstring, outputFile) != 0) {
+		return false;
+	}
+
+	return true;
 }
