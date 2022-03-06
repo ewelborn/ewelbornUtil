@@ -2,7 +2,7 @@
 	Single .h and .c file that contains everything you'd need
 	for your C project - hopefully!
 
-	Version 0.1.0
+	Version 0.3.0
 	https://github.com/ewelborn/ewelbornUtil/
 
 	Naming rules:
@@ -51,8 +51,8 @@ ewelborn_dynamicArray* ewelborn_dynamicArray_initialize();
 bool ewelborn_dynamicArray_push(ewelborn_dynamicArray* dynamicArray, void* element);
 
 // This function will free all memory allocated to a given dynamicArray.
-// WARNING! This will attempt to free all element pointers in the dynamicArray,
-// if you want to keep your elements, then copy them to a safe place!
+// This function will *not* free any elements that are pointed to in
+// the array.
 void ewelborn_dynamicArray_free(ewelborn_dynamicArray* dynamicArray);
 
 // This function will iterate over every element in the given dynamic array
@@ -85,6 +85,71 @@ void ewelborn_linkedList_traverse(ewelborn_linkedList* list, void(*f)(void*));
 // This function will reverse a given linked list, and will
 // return the new head of the list
 ewelborn_linkedList* ewelborn_linkedList_reverse(ewelborn_linkedList* list);
+
+struct ewelborn_priorityQueue {
+	ewelborn_dynamicArray* heap;
+	// True if this is a min-priority queue, false if max priority queue.
+	bool min;
+} typedef ewelborn_priorityQueue;
+
+// This function will initialize a min-priority queue or a max-priority queue
+// depending on the argument passed. This function will return the priority
+// queue if successful, or it will return null if unsuccessful.
+ewelborn_priorityQueue* ewelborn_priorityQueue_initialize(bool min);
+
+// This function will insert the given element with given priority into the
+// priority queue. If successful, the function will return true, otherwise,
+// the function will return false.
+bool ewelborn_priorityQueue_insert(ewelborn_priorityQueue* queue, void* element, int priority);
+
+// This function will return the length of the given priority queue.
+int ewelborn_priorityQueue_getLength(ewelborn_priorityQueue* queue);
+
+// This function will return the element at the head of the priority queue,
+// or it will return null if the queue is empty.
+void* ewelborn_priorityQueue_peek(ewelborn_priorityQueue* queue);
+
+// This function will return and remove the element at the head of
+// the priority queue, or it will return null if the queue is empty.
+void* ewelborn_priorityQueue_pop(ewelborn_priorityQueue* queue);
+
+// This function will free all memory associated to priority queue.
+void ewelborn_priorityQueue_free(ewelborn_priorityQueue* queue);
+
+// This function will find the given element in the priority queue and
+// update its priority to the new, given priority, and resort the queue.
+// This function returns true if successful, false otherwise.
+// NOTE: This function compares the memory addresses of elements, not the values!
+bool ewelborn_priorityQueue_updatePriority(ewelborn_priorityQueue* queue, void* element, int newPriority);
+
+struct ewelborn_queue {
+	void** array;
+	// Should the queue overwrite pre-existing data if the queue overflows?
+	bool overwrite;
+
+	int length;
+	int allocatedLength;
+
+	int readIndex;
+	int writeIndex;
+} typedef ewelborn_queue;
+
+// Attempts to create a queue, currently implemented with a circular buffer. Returns
+// the queue struct if successful, null otherwise.
+ewelborn_queue* ewelborn_queue_initialize(int maxLength, bool overwrite);
+
+// Attempts to push an element into the queue. If the queue is full, then this
+// attempt will succeed if and only if the overwrite flag is set, in which case,
+// the last element pushed into the queue will be overwritten. Returns true if
+// successful, false otherwise.
+bool ewelborn_queue_push(ewelborn_queue* queue, void* element);
+
+// Attempts to pop an element from the queue. Returns true if successful, null
+// otherwise.
+void* ewelborn_queue_pop(ewelborn_queue* queue);
+
+// Frees the queue struct - does not free elements inside the queue!
+void ewelborn_queue_free(ewelborn_queue* queue);
 
 // *** STRING MANIPULATION
 

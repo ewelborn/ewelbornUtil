@@ -9,6 +9,7 @@
 
 */
 
+// Does a simple "Hello, world!" work with estrings?
 void test_helloWorld()
 {
 	ewelborn_string* estring = ewelborn_string_initializeWithCString("Hello, world!");
@@ -17,14 +18,38 @@ void test_helloWorld()
 	assert(success == true);
 }
 
+// Does the queue work if we do some generic pushing and popping?
+void test_queue_genericTest()
+{
+	ewelborn_queue* queue = ewelborn_queue_initialize(10,false);
+	bool success = true;
+
+	int a = 5;
+	int b = 6;
+	int c = 12;
+	int d = -2;
+
+	ewelborn_queue_push(queue, &a);
+	ewelborn_queue_push(queue, &b);
+	ewelborn_queue_push(queue, &c);
+
+	success = success && *((int*)ewelborn_queue_pop(queue)) == a;
+	success = success && *((int*)ewelborn_queue_pop(queue)) == b;
+	success = success && *((int*)ewelborn_queue_pop(queue)) == c;
+
+	free(queue);
+	assert(success == true);
+}
+
 int main(void)
 {
 	// Yes, I'm aware that it's ironic to use the tested material
-	// inside the tester code.
+	// inside the testing code.
 	ewelborn_dynamicArray* tests = ewelborn_dynamicArray_initialize();
 
 	// Add new tests here.
 	ewelborn_dynamicArray_push(tests, &test_helloWorld);
+	ewelborn_dynamicArray_push(tests, &test_queue_genericTest);
 
 	printf("Running tests..\n");
 
