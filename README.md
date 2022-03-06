@@ -17,8 +17,8 @@ The Github repo is a visual studio project that will be expanded on in the futur
 
 This header file is (or should be) compatible with any standard C compiler, but it has been developed and tested to work on the Microsoft Visual C++ compiler running on the latest version. 
 To use the most recent version of the header file in your code, 
-[download the .h file here](https://github.com/ewelborn/ewelbornUtil/blob/3cb436b383ba7b3d79fbd972892c85be10d1b7b8/ewelbornUtil/ewelbornUtil.h), and 
-[download the .c file here](https://github.com/ewelborn/ewelbornUtil/blob/3cb436b383ba7b3d79fbd972892c85be10d1b7b8/ewelbornUtil/ewelbornUtil.c), and add them directly to your project folder. In the future, stable releases will be available separately for download.
+[download the .h file here](https://github.com/ewelborn/ewelbornUtil/blob/main/ewelbornUtil/ewelbornUtil.h), and 
+[download the .c file here](https://github.com/ewelborn/ewelbornUtil/blob/main/ewelbornUtil/ewelbornUtil.c), and add them directly to your project folder. In the future, stable releases will be available separately for download.
 
 ## Thanks for stopping by!
 If you want to know more about me and what I do, feel free to [visit my website](https://www.ethanwelborncs.com/). You can also visit the [project page](https://www.ethanwelborncs.com/ewelborn/article/ewelbornutil/) directly.
