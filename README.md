@@ -3,13 +3,15 @@ This is my attempt at implementing some higher level data structures in C. I wro
 
 The Github repo is a visual studio project that will be expanded on in the future for the purposes of testing the header file.
 
-**Warning: this project is still very much a work-in-progress, and the interface provided by ewelbornUtil.h is likely to change.**
+**Warning: this project is still very much a work-in-progress, and the interface provided by ewelbornUtil.h is likely to change. I'm also really bad at Git.**
 
 ## Features
 
-- **ewelborn_string**: a mutable string object backed by a dynamic array and comes with several string manipulation functions to make input processing less of a nightmare.
-- **ewelborn_dynamicArray**: a generic dynamic array in C that can be appended to without having to worry about resizing.
+- **ewelborn_string**: mutable string object backed by a dynamic array and comes with several string manipulation functions to make input processing less of a nightmare.
+- **ewelborn_dynamicArray**: generic dynamic array in C that can be appended to without having to worry about resizing.
 - **ewelborn_linkedList**: **WIP**
+- **ewelborn_queue**: generic FIFO queue with simple push and pop operations, backed by a circular buffer.
+- **ewelborn_priorityQueue**: priority queue backed by a dynamic heap, can be flagged to work either as a min or max priority queue.
 
 ## Install
 
